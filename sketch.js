@@ -4,7 +4,7 @@ var names = [];
 
 
 function preload() {
-  table = loadTable('rts.csv', 'csv', 'header');
+  table = loadTable('rts_time.csv', 'csv', 'header');
 }
 
 function setup() { 
@@ -15,37 +15,51 @@ function setup() {
   //console.log(table.getColumn('Source'));
  // console.log(lastName);
   network = new Network(-600, 50);
-
-  var newNode = new Neuron(3000, 1000, 'jalenbrunson1');
-  map1.set("jalenbrunson1", newNode);
+  mainName = table.getString(0,1);
+  console.log(mainName);
+  //console.log(mainName);
+  var newNode = new Neuron(3000, 1000, mainName, true);
+  map1.set(mainName, newNode);
   map1.set(lastName, new Neuron(width/2+50, height/2+50))
-  names.push("jalenbrunson1");
+  names.push(mainName);
   //create neurons
   for (let r = 2; r < table.getRowCount(); r++)
   {
     currName = table.getString(r, 0);
+    time = int(table.getString(r,3));
+    //everyone connected to main tweeter close to him for sure
     if (currName != lastName)
     {
-      map1.set(currName, new Neuron(3000+cos(random(0, TWO_PI))*random(300,500), 1000+sin(random(0, TWO_PI))*random(300,500), currName));
+      //set inner circle based just on time
 
-      if (table.getString(r, 1) != "jalenbrunson1")
+      //if no time just random
+      if (time==-1)
+      {
+      map1.set(currName, new Neuron(3000+cos(random(0, TWO_PI))*random(300,500), 1000+sin(random(0, TWO_PI))*random(300,500), currName, false));
+      }
+      if (time!=-1)
+      {
+        map1.set(currName, new Neuron(3000+cos(random(0, TWO_PI))*time/70, 1000+sin(random(0, TWO_PI))*time/70, currName, true));
+      }
+      //if it's not connected to the main tweeter, create positions based only on time and closest connection?
+      //time*some scalar
+      //lets see what that looks like
+      if (table.getString(r, 1) != mainName)
       {
         parentNeuron= map1.get(table.getString(r,1));
         parentX = parentNeuron.position.x-3000;
         parentY = parentNeuron.position.y-1000;
-        map1.set(currName, new Neuron(3000+parentX*1.5+int(random(0,50)), 1000+parentY*1.5+int(random(0, 50)), currName));
+        magnitude = sqrt(parentX*parentX+parentY*parentY);
+        map1.set(currName, new Neuron(3000+(parentX/magnitude)*time/70, 1000+(parentY/magnitude)*time/70, currName, true));
 
       }
       names.push(lastName);
     }
-    //console.log(lastName);
     lastName = currName;
   }
   names.push(currName);
- // console.log(names);
-  //console.log(map1.get(table.getString(1,0)));
-  //console.log(map1);
-  //connect neurons
+
+  //connect neurons using edges
   for (let r = 1; r < table.getRowCount(); r++)
   {
    network.connect(map1.get(table.getString(r,1)), map1.get(table.getString(r,0)), table.getString(r,2));
@@ -192,7 +206,7 @@ function Network(x, y) {
   }
 }
 
-function Neuron(x, y, name) {
+function Neuron(x, y, name, active) {
   
   this.position = createVector(x, y);
   this.connections = [];
@@ -200,6 +214,7 @@ function Neuron(x, y, name) {
   this.r = 32;
   this.isTouched = false;
   this.name = name;
+  this.active = active;
   
   this.addConnection = function(c) {
     this.connections.push(c);
@@ -219,7 +234,10 @@ function Neuron(x, y, name) {
     this.r = 64;
     
     for (var i = 0; i < this.connections.length; i++) {
+      if (this.active)
+      {
        this.connections[i].feedforward(this.sum);
+      }
      //  this.connections[i].isTouched = true;
     }
   }
@@ -231,14 +249,16 @@ function Neuron(x, y, name) {
     var b = (255,150,255);
     fill(0,0,0);
     //console.log(this.isTouched);
-    if (this.isTouched)
+    if (this.isTouched && this.active)
         fill(255,150,250);
     ellipse(this.position.x, this.position.y, this.r, this.r);
     fill(255,255,255);
     stroke(255,255,255);
     textSize(10);
     text(this.name, this.position.x, this.position.y);
-    
+    if (this.active)
+    {
     this.r = lerp(this.r,32,0.1);
+    }
   }
 }
