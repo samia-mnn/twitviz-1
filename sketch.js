@@ -51,7 +51,12 @@ function setup() {
         parentY = parentNeuron.position.y-1000;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
         map1.set(currName, new Neuron(3000+(parentX/magnitude)*time/70, 1000+(parentY/magnitude)*time/70, currName, true));
+        if (time == -1)
+        {
+          map1.set(currName, new Neuron(3000+(parentX)*1.2, 1000+parentY*1.2, currName, true));
 
+        }
+        
       }
       names.push(lastName);
     }
