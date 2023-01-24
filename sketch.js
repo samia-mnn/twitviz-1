@@ -9,16 +9,22 @@ function preload() {
 
 function setup() { 
   scale(0.25);
-  
-  createCanvas(4000,2500);
+  defaultradius = 32;
+  timescale = 30;
+  createCanvas(6000,5000);
   lastName = table.getString(1,0);
   //console.log(table.getColumn('Source'));
  // console.log(lastName);
-  network = new Network(-600, 50);
+  network = new Network(0, 0);
   mainName = table.getString(0,1);
   console.log(mainName);
+  maxTime = 1;
+  mainX = 3000;
+  mainY = 2000;
+  img = loadImage("mavstweet.png");
   //console.log(mainName);
-  var newNode = new Neuron(3000, 1000, mainName, true);
+
+  var newNode = new Neuron(mainX, mainY, mainName, true, defaultradius*4);
   map1.set(mainName, newNode);
   map1.set(lastName, new Neuron(width/2+50, height/2+50))
   names.push(mainName);
@@ -27,6 +33,9 @@ function setup() {
   {
     currName = table.getString(r, 0);
     time = int(table.getString(r,3));
+    if (time > maxTime) {
+      maxTime = time;
+    }
     //everyone connected to main tweeter close to him for sure
     if (currName != lastName)
     {
@@ -35,11 +44,11 @@ function setup() {
       //if no time just random
       if (time==-1)
       {
-      map1.set(currName, new Neuron(3000+cos(random(0, TWO_PI))*random(300,500), 1000+sin(random(0, TWO_PI))*random(300,500), currName, false));
+      map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*random(300,500), mainY+sin(random(0, TWO_PI))*random(300,500), currName, false, defaultradius));
       }
       if (time!=-1)
       {
-        map1.set(currName, new Neuron(3000+cos(random(0, TWO_PI))*time/70, 1000+sin(random(0, TWO_PI))*time/70, currName, true));
+        map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*time/timescale, mainY+sin(random(0, TWO_PI))*time/timescale, currName, true, defaultradius));
       }
       //if it's not connected to the main tweeter, create positions based only on time and closest connection?
       //time*some scalar
@@ -47,13 +56,13 @@ function setup() {
       if (table.getString(r, 1) != mainName)
       {
         parentNeuron= map1.get(table.getString(r,1));
-        parentX = parentNeuron.position.x-3000;
-        parentY = parentNeuron.position.y-1000;
+        parentX = parentNeuron.position.x-mainX;
+        parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
-        map1.set(currName, new Neuron(3000+(parentX/magnitude)*time/70, 1000+(parentY/magnitude)*time/70, currName, true));
+        map1.set(currName, new Neuron(mainX+(parentX/magnitude)*time/timescale, mainY+(parentY/magnitude)*time/timescale, currName, true, defaultradius));
         if (time == -1)
         {
-          map1.set(currName, new Neuron(3000+(parentX)*1.2, 1000+parentY*1.2, currName, true));
+          map1.set(currName, new Neuron(mainX+(parentX)*1.2, mainY+parentY*1.2, currName, true, defaultradius));
 
         }
         
@@ -93,15 +102,29 @@ function setup() {
 function draw() { 
   background(0);
   textSize(50);
+  stroke(160,160,160);
+  strokeWeight(4);
+ // timescale = 30;
+  for (var k=1; k<5; k++)
+  {
+  fill(0);
+  ellipse(mainX,mainY, 2*maxTime/(timescale*k));
+  fill(255,255,255);
+  textSize(40);
+  text(maxTime/k + "s", mainX - maxTime/(timescale*k),mainY)
+  }
   fill(250,170,170);
-  text("Full network", 800, 800);
+  text("Mavericks Tweet", 800, 800);
   fill(170,170,170);
-  text("Tweet1", 800, 860);
-  text("Tweet2", 800, 920);
-  text("Tweet3", 800, 980);
+ // text("Tweet1", 800, 860);
+ // text("Tweet2", 800, 920);
+ // text("Tweet3", 800, 980);
   network.update();
   network.display();
-  
+  fill(29, 161, 242)
+  stroke(29, 161, 242);
+  ellipse(mainX, mainY, 100);
+  image(img, mainX/3, mainY/2);
   if (frameCount % 100 == 0) {
 		network.feedforward(random(1), random(1));
   }
@@ -211,12 +234,12 @@ function Network(x, y) {
   }
 }
 
-function Neuron(x, y, name, active) {
+function Neuron(x, y, name, active, radius) {
   
   this.position = createVector(x, y);
   this.connections = [];
   this.sum = 0;
-  this.r = 32;
+  this.r = radius;
   this.isTouched = false;
   this.name = name;
   this.active = active;
@@ -248,14 +271,14 @@ function Neuron(x, y, name, active) {
   }
   
   this.display = function() {
-    stroke(255,150,255);
+    stroke(29, 161, 242);
     strokeWeight(1);
 
-    var b = (255,150,255);
+    var b = (29, 161, 242);
     fill(0,0,0);
     //console.log(this.isTouched);
     if (this.isTouched && this.active)
-        fill(255,150,250);
+        fill(29, 161, 242);
     ellipse(this.position.x, this.position.y, this.r, this.r);
     fill(255,255,255);
     stroke(255,255,255);
