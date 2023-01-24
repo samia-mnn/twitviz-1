@@ -114,7 +114,6 @@ function draw() {
   text(maxTime/k + "s", mainX - maxTime/(timescale*k),mainY)
   }
   fill(250,170,170);
-  text("Mavericks Tweet", 800, 800);
   fill(170,170,170);
  // text("Tweet1", 800, 860);
  // text("Tweet2", 800, 920);
@@ -124,7 +123,10 @@ function draw() {
   fill(29, 161, 242)
   stroke(29, 161, 242);
   ellipse(mainX, mainY, 100);
-  image(img, mainX/3, mainY/2);
+  line(mainX, mainY, mainX/3, mainY/2)
+  rect(mainX/3, mainY/2, img.width*1.1, img.height*1.1);
+  image(img, mainX/3+img.width*0.05, mainY/2+img.height*0.05);
+
   if (frameCount % 100 == 0) {
 		network.feedforward(random(1), random(1));
   }
