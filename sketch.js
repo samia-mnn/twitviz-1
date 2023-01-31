@@ -44,11 +44,11 @@ function setup() {
       //if no time just random
       if (time==-1)
       {
-      map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*random(300,500), mainY+sin(random(0, TWO_PI))*random(300,500), currName, false, defaultradius));
+      map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*random(700,800), mainY+sin(random(0, TWO_PI))*random(700,800), currName, false, defaultradius, time));
       }
       if (time!=-1)
       {
-        map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*time/timescale, mainY+sin(random(0, TWO_PI))*time/timescale, currName, true, defaultradius));
+        map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*random(700,800), mainY+sin(random(0, TWO_PI))*random(700,800), currName, true, defaultradius, time));
       }
       //if it's not connected to the main tweeter, create positions based only on time and closest connection?
       //time*some scalar
@@ -59,12 +59,12 @@ function setup() {
         parentX = parentNeuron.position.x-mainX;
         parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
-        map1.set(currName, new Neuron(mainX+(parentX/magnitude)*time/timescale, mainY+(parentY/magnitude)*time/timescale, currName, true, defaultradius));
-        if (time == -1)
-        {
-          map1.set(currName, new Neuron(mainX+(parentX)*1.2, mainY+parentY*1.2, currName, true, defaultradius));
+      //  map1.set(currName, new Neuron(mainX+(parentX/magnitude)*time/timescale, mainY+(parentY/magnitude)*time/timescale, currName, true, defaultradius, time));
+       // if (time == -1)
+       // {
+        map1.set(currName, new Neuron(mainX+(parentX)*1.4, mainY+parentY*1.4, currName, true, defaultradius, time));
 
-        }
+       // }
         
       }
       names.push(lastName);
@@ -87,6 +87,8 @@ function setup() {
 
   first = map1.get(names[0]);
   console.log(first);
+
+
   goThrough(first, first.position.x, first.position.y, 10)
 
 
@@ -95,24 +97,30 @@ function setup() {
 
   console.log(table.getRowCount() + ' total rows in table');
   
-  
- 
+  network.update();
+  network.display();
+  network.feedforward(1, 1);
+  newNode.fire();
+
 } 
 
 function draw() { 
-  background(0);
+  background(255);
   textSize(50);
-  stroke(160,160,160);
+  stroke(210);
   strokeWeight(4);
- // timescale = 30;
+  timescale = 30;
   for (var k=1; k<5; k++)
   {
-  fill(0);
+  fill(255);
   ellipse(mainX,mainY, 2*maxTime/(timescale*k));
-  fill(255,255,255);
-  textSize(40);
-  text(maxTime/k + "s", mainX - maxTime/(timescale*k),mainY)
+  fill(0);
+ // textSize(40);
+ // text(maxTime/k + "s", mainX - maxTime/(timescale*k),mainY)
   }
+  fill(200);
+  textSize(80);
+  text(round(log(frameCount),1)*40 + " seconds after tweet", 1000, 2000);
   fill(250,170,170);
   fill(170,170,170);
  // text("Tweet1", 800, 860);
@@ -127,9 +135,8 @@ function draw() {
   rect(mainX/3, mainY/2, img.width*1.1, img.height*1.1);
   image(img, mainX/3+img.width*0.05, mainY/2+img.height*0.05);
 
-  if (frameCount % 100 == 0) {
-		network.feedforward(random(1), random(1));
-  }
+ // if (frameCount % 10 == 0) {
+ // }
 }
 
 
@@ -176,17 +183,20 @@ function Connection(from, to,w) {
   }
   
   this.display = function() {
-    stroke(255);
+    stroke(220);
     strokeWeight(this.weight*0.4);
    // console.log(this.a);
    // console.log(this.b);
     line(this.a.position.x, this.a.position.y, this.b.position.x, this.b.position.y);
-    
+    var hasSent = false;
     if (this.sending) {
-      fill(255);
+      hasSent = true;
+      fill(200);
       strokeWeight(1);
       ellipse(this.sender.x, this.sender.y, 16, 16);
     }
+   
+    
   }
 }
 
@@ -220,6 +230,15 @@ function Network(x, y) {
     for (var i = 0; i < this.connections.length; i++) {
       this.connections[i].update();
     }
+    for (var i = 0; i < this.neurons.length; i++)
+    {
+      check = log(this.neurons[i].time)*40 - frameCount;
+     // console.log(check);
+      if ( check <= 0)
+      {
+        this.neurons[i].fire();
+      }
+    }
   }
   
   this.display = function() {
@@ -236,7 +255,7 @@ function Network(x, y) {
   }
 }
 
-function Neuron(x, y, name, active, radius) {
+function Neuron(x, y, name, active, radius, time) {
   
   this.position = createVector(x, y);
   this.connections = [];
@@ -245,6 +264,8 @@ function Neuron(x, y, name, active, radius) {
   this.isTouched = false;
   this.name = name;
   this.active = active;
+  this.time = time;
+  this.isSending = false;
   
   this.addConnection = function(c) {
     this.connections.push(c);
@@ -253,7 +274,7 @@ function Neuron(x, y, name, active, radius) {
   this.feedforward = function(input) {
     this.sum += input;
     if (this.sum > 1) {
-      this.fire();
+      //this.fire();
       this.sum = 0;
       this.isTouched = true;
 
@@ -261,8 +282,10 @@ function Neuron(x, y, name, active, radius) {
   }
   
   this.fire = function() {
+    if (!this.isSending)
+    {
     this.r = 64;
-    
+    this.isSending = true;
     for (var i = 0; i < this.connections.length; i++) {
       if (this.active)
       {
@@ -271,19 +294,31 @@ function Neuron(x, y, name, active, radius) {
      //  this.connections[i].isTouched = true;
     }
   }
+  }
   
   this.display = function() {
     stroke(29, 161, 242);
     strokeWeight(1);
 
     var b = (29, 161, 242);
-    fill(0,0,0);
+    fill(255);
     //console.log(this.isTouched);
-    if (this.isTouched && this.active)
+    if (this.active)
+    {
+   /*   if (this.isTouched)
+      {
         fill(29, 161, 242);
+      }*/
+      if (this.isSending)
+      {
+        fill(29, 161, 242);
+        //fill(10, 121, 200);
+      }
+    }
+
     ellipse(this.position.x, this.position.y, this.r, this.r);
-    fill(255,255,255);
-    stroke(255,255,255);
+    fill(200);
+    stroke(200);
     textSize(10);
     text(this.name, this.position.x, this.position.y);
     if (this.active)
