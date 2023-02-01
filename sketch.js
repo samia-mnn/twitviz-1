@@ -172,8 +172,8 @@ function Connection(from, to,w) {
   
   this.update = function() {
     if (this.sending) {
-      this.sender.x = lerp(this.sender.x, this.b.position.x, 0.1);
-      this.sender.y = lerp(this.sender.y, this.b.position.y, 0.1);
+      this.sender.x = lerp(this.sender.x, this.b.position.x, 0.2);
+      this.sender.y = lerp(this.sender.y, this.b.position.y, 0.2);
       var d = p5.Vector.dist(this.sender, this.b.position);
       if (d < 1) {
         this.b.feedforward(this.output);
@@ -191,7 +191,7 @@ function Connection(from, to,w) {
     var hasSent = false;
     if (this.sending) {
       hasSent = true;
-      fill(200);
+      fill(0);
       strokeWeight(1);
       ellipse(this.sender.x, this.sender.y, 16, 16);
     }
