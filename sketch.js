@@ -1,13 +1,20 @@
 var network;
 const map1 = new Map();
+const timeMap = new Map();
 var names = [];
 
 
 function preload() {
   table = loadTable('rts_time.csv', 'csv', 'header');
+  nodes_table = loadTable('nodes.csv', 'csv', 'header');
+  //preload active nodes
+  //inactive nodes
+  //connections
+  
 }
 
 function setup() { 
+  //calculate distances
   scale(0.25);
   defaultradius = 32;
   timescale = 30;
@@ -42,13 +49,15 @@ function setup() {
       //set inner circle based just on time
 
       //if no time just random
+      angle = random(0, TWO_PI);
+      distance = random(500,700);
       if (time==-1)
       {
-      map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*random(700,800), mainY+sin(random(0, TWO_PI))*random(700,800), currName, false, defaultradius, time));
+      map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time));
       }
       if (time!=-1)
       {
-        map1.set(currName, new Neuron(mainX+cos(random(0, TWO_PI))*random(700,800), mainY+sin(random(0, TWO_PI))*random(700,800), currName, true, defaultradius, time));
+        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time));
       }
       //if it's not connected to the main tweeter, create positions based only on time and closest connection?
       //time*some scalar
@@ -59,6 +68,9 @@ function setup() {
         parentX = parentNeuron.position.x-mainX;
         parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
+        colorCount = 1;
+      
+      
       //  map1.set(currName, new Neuron(mainX+(parentX/magnitude)*time/timescale, mainY+(parentY/magnitude)*time/timescale, currName, true, defaultradius, time));
        // if (time == -1)
        // {
@@ -71,6 +83,7 @@ function setup() {
     }
     lastName = currName;
   }
+
   names.push(currName);
 
   //connect neurons using edges
@@ -109,7 +122,7 @@ function draw() {
   textSize(50);
   stroke(210);
   strokeWeight(4);
-  timescale = 30;
+  timescale = 40;
   for (var k=1; k<5; k++)
   {
   fill(255);
@@ -120,7 +133,7 @@ function draw() {
   }
   fill(200);
   textSize(80);
-  text(round(log(frameCount),1)*40 + " seconds after tweet", 1000, 2000);
+  text(round(log(frameCount),1)*timescale + " seconds after tweet", 1000, 2000);
   fill(250,170,170);
   fill(170,170,170);
  // text("Tweet1", 800, 860);
@@ -139,7 +152,8 @@ function draw() {
  // }
 }
 
-
+//go through the network and adjust all of the nodes
+//but doesns't do anything yet and is not used
 function goThrough (n, currposx, currposy, r)
 {
   n.position = createVector(currposx + r*cos(random(0,2*PI)), currposy + r*cos(random(0,2*PI)));
