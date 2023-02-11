@@ -5,8 +5,10 @@ var names = [];
 
 
 function preload() {
-  table = loadTable('rts_time.csv', 'csv', 'header');
+  table = loadTable('links.csv', 'csv', 'header');
   nodes_table = loadTable('nodes.csv', 'csv', 'header');
+ 
+
   //preload active nodes
   //inactive nodes
   //connections
@@ -15,6 +17,11 @@ function preload() {
 
 function setup() { 
   //calculate distances
+  for (let r = 1; r < nodes_table.getRowCount(); r++)
+  {
+    timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
+   // console.log(nodes_table.getString(r,1));
+  }
   scale(0.25);
   defaultradius = 32;
   timescale = 30;
@@ -33,13 +40,14 @@ function setup() {
 
   var newNode = new Neuron(mainX, mainY, mainName, true, defaultradius*4);
   map1.set(mainName, newNode);
-  map1.set(lastName, new Neuron(width/2+50, height/2+50))
+;  map1.set(lastName, new Neuron(width/2+50, height/2+50))
   names.push(mainName);
   //create neurons
-  for (let r = 2; r < table.getRowCount(); r++)
+  for (let r = 2; r < 2000/*table.getRowCount()*/; r++)
   {
     currName = table.getString(r, 0);
-    time = int(table.getString(r,3));
+    time = int(timeMap.get(currName));
+   // console.log(time);
     if (time > maxTime) {
       maxTime = time;
     }
@@ -50,7 +58,11 @@ function setup() {
 
       //if no time just random
       angle = random(0, TWO_PI);
-      distance = random(500,700);
+      distance = random(400,600);
+      if (table.getString(r, 1) != mainName)
+      {
+        distance = random(600,2000);
+      }
       if (time==-1)
       {
       map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time));
@@ -62,23 +74,32 @@ function setup() {
       //if it's not connected to the main tweeter, create positions based only on time and closest connection?
       //time*some scalar
       //lets see what that looks like
-      if (table.getString(r, 1) != mainName)
+   /*   if (table.getString(r, 1) != mainName)
       {
+        try
+        {
         parentNeuron= map1.get(table.getString(r,1));
         parentX = parentNeuron.position.x-mainX;
         parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
         colorCount = 1;
+        map1.set(currName, new Neuron(mainX+(parentX)*1.4, mainY+parentY*1.4, currName, true, defaultradius, time));
+
+        }
+        catch 
+        {
+            console.log("parent not here yet");
+        }*/
       
-      
+   //     map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time));
+
       //  map1.set(currName, new Neuron(mainX+(parentX/magnitude)*time/timescale, mainY+(parentY/magnitude)*time/timescale, currName, true, defaultradius, time));
        // if (time == -1)
        // {
-        map1.set(currName, new Neuron(mainX+(parentX)*1.4, mainY+parentY*1.4, currName, true, defaultradius, time));
 
        // }
         
-      }
+ //     }
       names.push(lastName);
     }
     lastName = currName;
@@ -89,7 +110,7 @@ function setup() {
   //connect neurons using edges
   for (let r = 1; r < table.getRowCount(); r++)
   {
-   network.connect(map1.get(table.getString(r,1)), map1.get(table.getString(r,0)), table.getString(r,2));
+   network.connect(map1.get(table.getString(r,1)), map1.get(table.getString(r,0)), 2);
   }
   for (let i = 0; i < names.length; i++)
   {
@@ -157,7 +178,7 @@ function draw() {
 function goThrough (n, currposx, currposy, r)
 {
   n.position = createVector(currposx + r*cos(random(0,2*PI)), currposy + r*cos(random(0,2*PI)));
-  console.log(n);
+ // console.log(n);
   //console.log(n.connections);
   if (typeof n.connections !== 'undefined')
   {
