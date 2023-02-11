@@ -1,6 +1,7 @@
 var network;
 const map1 = new Map();
 const timeMap = new Map();
+const timeToNode = new Map();
 var names = [];
 
 
@@ -20,6 +21,7 @@ function setup() {
   for (let r = 1; r < nodes_table.getRowCount(); r++)
   {
     timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
+    timeToNode.set(nodes_table.getString(r, 1), nodes_table.getString(r,0))
    // console.log(nodes_table.getString(r,1));
   }
   scale(0.25);
@@ -43,7 +45,9 @@ function setup() {
 ;  map1.set(lastName, new Neuron(width/2+50, height/2+50))
   names.push(mainName);
   //create neurons
-  for (let r = 2; r < 2000/*table.getRowCount()*/; r++)
+  //the reason some first tier neurons can be outside this range is because
+  //the also got the information again from a nother source later
+  for (let r = 2; r < 3500/*table.getRowCount()*/; r++)
   {
     currName = table.getString(r, 0);
     time = int(timeMap.get(currName));
@@ -74,22 +78,24 @@ function setup() {
       //if it's not connected to the main tweeter, create positions based only on time and closest connection?
       //time*some scalar
       //lets see what that looks like
-   /*   if (table.getString(r, 1) != mainName)
+      if (table.getString(r, 1) != mainName)
       {
         try
         {
         parentNeuron= map1.get(table.getString(r,1));
+       // console.log(parentNeuron);
         parentX = parentNeuron.position.x-mainX;
         parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
         colorCount = 1;
-        map1.set(currName, new Neuron(mainX+(parentX)*1.4, mainY+parentY*1.4, currName, true, defaultradius, time));
+        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time));
 
         }
         catch 
         {
-            console.log("parent not here yet");
-        }*/
+           // console.log("parent not here yet");
+        }
+      }
       
    //     map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time));
 
@@ -154,7 +160,7 @@ function draw() {
   }
   fill(200);
   textSize(80);
-  text(round(log(frameCount),1)*timescale + " seconds after tweet", 1000, 2000);
+  text(round(exp(frameCount/timescale),1) + " seconds after tweet", 1000, 2000);
   fill(250,170,170);
   fill(170,170,170);
  // text("Tweet1", 800, 860);
@@ -265,6 +271,9 @@ function Network(x, y) {
     for (var i = 0; i < this.connections.length; i++) {
       this.connections[i].update();
     }
+    console.log(timeToNode.get(String(exp(frameCount/40))));
+    console.log(String(int((exp(frameCount/40)))));
+
     for (var i = 0; i < this.neurons.length; i++)
     {
       check = log(this.neurons[i].time)*40 - frameCount;
@@ -351,7 +360,15 @@ function Neuron(x, y, name, active, radius, time) {
       }
     }
 
+    if (this.connections.length > 10)
+    {
+    ellipse(this.position.x, this.position.y, this.r*5, this.r*5);
+    }
+    else
+    {
     ellipse(this.position.x, this.position.y, this.r, this.r);
+    }
+
     fill(200);
     stroke(200);
     textSize(10);
