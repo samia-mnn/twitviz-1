@@ -3,6 +3,7 @@ const map1 = new Map();
 const timeMap = new Map();
 const timeToNode = new Map();
 var names = [];
+var startpoint = 0;
 
 
 function preload() {
@@ -47,10 +48,11 @@ function setup() {
   //create neurons
   //the reason some first tier neurons can be outside this range is because
   //the also got the information again from a nother source later
-  for (let r = 2; r < 4000/*table.getRowCount()*/; r++)
+  for (let r = 2; r < 3000/*table.getRowCount()*/; r++)
   {
     currName = table.getString(r, 0);
     time = int(timeMap.get(currName));
+    console.log(time);
    // console.log(time);
     if (time > maxTime) {
       maxTime = time;
@@ -105,7 +107,7 @@ function setup() {
         }*/
    //   }
      //rearrange
-      for (let r = 2; r < 4000/*table.getRowCount()*/; r++)
+      for (let r = 2; r < 3000/*table.getRowCount()*/; r++)
   {
         currName = table.getString(r, 0);
         console.log("hi");
@@ -162,7 +164,6 @@ function setup() {
   console.log(first);
 
 
-  goThrough(first, first.position.x, first.position.y, 10)
 
 
 
@@ -170,6 +171,7 @@ function setup() {
 
   console.log(table.getRowCount() + ' total rows in table');
   
+  network.orient();
   network.update();
   network.display();
   network.feedforward(1, 1);
@@ -299,6 +301,14 @@ function Network(x, y) {
         n.feedforward(arguments[i]);
     }
   }
+
+  this.orient =function() {
+    for(i=0; i< this.neurons.length; i++)
+    {
+      this.neurons[i].orient();
+    }
+
+  }
   
   this.update = function() {
     for (var i = 0; i < this.connections.length; i++) {
@@ -317,6 +327,7 @@ function Network(x, y) {
     //console.log(String(int((exp(frameCount/40)))));
     }*/
 
+    
     for (var i = 0; i < this.neurons.length; i++)
     {
       check = log(this.neurons[i].time)*40 - frameCount;
@@ -365,6 +376,20 @@ function Neuron(x, y, name, active, radius, time) {
       this.sum = 0;
       this.isTouched = true;
 
+    }
+  }
+
+  this.orient = function() {
+    var sumx = 0;
+    var sumy = 0;
+    for (j=0; j<this.connections.length; j++)
+    {
+      sumx = sumx+this.connections[j].b.position.x;
+      sumy = sumy+this.connections[j].b.position.y;
+    }
+    if (sumx != 0 && sumy != 0)
+    {
+    this.position = createVector(sumx/this.connections.length, sumy/this.connections.length);
     }
   }
   
