@@ -47,7 +47,7 @@ function setup() {
   //create neurons
   //the reason some first tier neurons can be outside this range is because
   //the also got the information again from a nother source later
-  for (let r = 2; r < 3500/*table.getRowCount()*/; r++)
+  for (let r = 2; r < 4000/*table.getRowCount()*/; r++)
   {
     currName = table.getString(r, 0);
     time = int(timeMap.get(currName));
@@ -75,10 +75,18 @@ function setup() {
       {
         map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time));
       }
+
+
+    }
+    names.push(lastName);
+    lastName = currName;
+
+
+  }
       //if it's not connected to the main tweeter, create positions based only on time and closest connection?
       //time*some scalar
       //lets see what that looks like
-      if (table.getString(r, 1) != mainName)
+    /*  if (table.getString(r, 1) != mainName)
       {
         try
         {
@@ -94,8 +102,35 @@ function setup() {
         catch 
         {
            // console.log("parent not here yet");
+        }*/
+   //   }
+     //rearrange
+      for (let r = 2; r < 4000/*table.getRowCount()*/; r++)
+  {
+        currName = table.getString(r, 0);
+        console.log("hi");
+        time = int(timeMap.get(currName));
+        if (table.getString(r, 1) != mainName)
+      {
+        try
+        {
+        parentNeuron= map1.get(table.getString(r,1));
+       // console.log(parentNeuron);
+        parentX = parentNeuron.position.x-mainX;
+        parentY = parentNeuron.position.y-mainY;
+        magnitude = sqrt(parentX*parentX+parentY*parentY);
+        colorCount = 1;
+        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time));
+
+        }
+        catch 
+        {
+          console.log('fail');
+           // console.log("parent not here yet");
         }
       }
+    }
+  
       
    //     map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time));
 
@@ -106,10 +141,8 @@ function setup() {
        // }
         
  //     }
-      names.push(lastName);
-    }
-    lastName = currName;
-  }
+    
+
 
   names.push(currName);
 
@@ -171,9 +204,9 @@ function draw() {
   fill(29, 161, 242)
   stroke(29, 161, 242);
   ellipse(mainX, mainY, 100);
-  line(mainX, mainY, mainX/3, mainY/2)
-  rect(mainX/3, mainY/2, img.width*1.1, img.height*1.1);
-  image(img, mainX/3+img.width*0.05, mainY/2+img.height*0.05);
+  //line(mainX, mainY, mainX/3, mainY/2)
+  //rect(mainX/3, mainY/2, img.width*1.1, img.height*1.1);
+ // image(img, mainX/3+img.width*0.05, mainY/2+img.height*0.05);
 
  // if (frameCount % 10 == 0) {
  // }
@@ -271,8 +304,18 @@ function Network(x, y) {
     for (var i = 0; i < this.connections.length; i++) {
       this.connections[i].update();
     }
-    console.log(timeToNode.get(String(exp(frameCount/40))));
-    console.log(String(int((exp(frameCount/40)))));
+    
+   /* try
+    {
+    id = timeToNode.get(String(int((exp(frameCount/40)))));
+    //console.log(map1.get(id));
+    map1.get(id).fire();
+    console.log("fired");
+    }
+    catch
+    {
+    //console.log(String(int((exp(frameCount/40)))));
+    }*/
 
     for (var i = 0; i < this.neurons.length; i++)
     {
@@ -362,7 +405,16 @@ function Neuron(x, y, name, active, radius, time) {
 
     if (this.connections.length > 10)
     {
-    ellipse(this.position.x, this.position.y, this.r*5, this.r*5);
+    ellipse(this.position.x, this.position.y, this.r*3, this.r*3);
+    }
+    if (this.connections.length > 30)
+    {
+    ellipse(this.position.x, this.position.y, this.r*7, this.r*7);
+    }
+    if (this.connections.length > 100)
+    {
+      ellipse(this.position.x, this.position.y, this.r*9, this.r*9);
+
     }
     else
     {
