@@ -48,7 +48,7 @@ function setup() {
   //create neurons
   //the reason some first tier neurons can be outside this range is because
   //the also got the information again from a nother source later
-  for (let r = 2; r < 3000/*table.getRowCount()*/; r++)
+  for (let r = 2; r < 4000 /*table.getRowCount()*/; r++)
   {
     currName = table.getString(r, 0);
     time = int(timeMap.get(currName));
@@ -64,10 +64,10 @@ function setup() {
 
       //if no time just random
       angle = random(0, TWO_PI);
-      distance = random(400,600);
+      distance = random(400,900);
       if (table.getString(r, 1) != mainName)
       {
-        distance = random(600,2000);
+        distance = random(900,2200);
       }
       if (time==-1)
       {
@@ -107,7 +107,7 @@ function setup() {
         }*/
    //   }
      //rearrange
-      for (let r = 2; r < 3000/*table.getRowCount()*/; r++)
+      for (let r = 2; r < 4000/*table.getRowCount()*/; r++)
   {
         currName = table.getString(r, 0);
         console.log("hi");
@@ -342,12 +342,13 @@ function Network(x, y) {
   this.display = function() {
     push();
     translate(this.position.x, this.position.y);
-    for (var i = 0; i < this.neurons.length; i++) {
-      this.neurons[i].display();
-    }
+   
     
     for (var i = 0; i < this.connections.length; i++) {
       this.connections[i].display();
+    }
+    for (var i = 0; i < this.neurons.length; i++) {
+      this.neurons[i].display();
     }
     pop();
   }
