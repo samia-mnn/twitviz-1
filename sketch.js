@@ -48,7 +48,7 @@ function setup() {
   //create neurons
   //the reason some first tier neurons can be outside this range is because
   //the also got the information again from a nother source later
-  for (let r = 2; r < 4000 /*table.getRowCount()*/; r++)
+  for (let r = 2; r < 6000; r++)
   {
     currName = table.getString(r, 0);
     time = int(timeMap.get(currName));
@@ -64,18 +64,18 @@ function setup() {
 
       //if no time just random
       angle = random(0, TWO_PI);
-      distance = random(400,900);
+      distance = random(400,1400);
       if (table.getString(r, 1) != mainName)
       {
         distance = random(900,2200);
       }
       if (time==-1)
       {
-      map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time));
+      map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time, true));
       }
       if (time!=-1)
       {
-        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time));
+        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, true));
       }
 
 
@@ -107,7 +107,7 @@ function setup() {
         }*/
    //   }
      //rearrange
-      for (let r = 2; r < 4000/*table.getRowCount()*/; r++)
+      for (let r = 2; r <6000; r++)
   {
         currName = table.getString(r, 0);
         console.log("hi");
@@ -122,7 +122,7 @@ function setup() {
         parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
         colorCount = 1;
-        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time));
+        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time, false));
 
         }
         catch 
@@ -171,7 +171,10 @@ function setup() {
 
   console.log(table.getRowCount() + ' total rows in table');
   
+  for (i=0; i<10;i++)
+  {
   network.orient();
+  }
   network.update();
   network.display();
   network.feedforward(1, 1);
@@ -354,7 +357,7 @@ function Network(x, y) {
   }
 }
 
-function Neuron(x, y, name, active, radius, time) {
+function Neuron(x, y, name, active, radius, time, isFirst) {
   
   this.position = createVector(x, y);
   this.connections = [];
@@ -365,6 +368,7 @@ function Neuron(x, y, name, active, radius, time) {
   this.active = active;
   this.time = time;
   this.isSending = false;
+  this.isFirst = isFirst;
   
   this.addConnection = function(c) {
     this.connections.push(c);
@@ -425,7 +429,10 @@ function Neuron(x, y, name, active, radius, time) {
       if (this.isSending)
       {
         fill(29, 161, 242);
-        //fill(10, 121, 200);
+      if (this.isFirst)
+      {
+        fill(10, 121, 200);
+      }
       }
     }
 
@@ -450,7 +457,7 @@ function Neuron(x, y, name, active, radius, time) {
     fill(200);
     stroke(200);
     textSize(10);
-    text(this.name, this.position.x, this.position.y);
+   // text(this.name, this.position.x, this.position.y);
     if (this.active)
     {
     this.r = lerp(this.r,32,0.1);
