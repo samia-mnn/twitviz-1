@@ -11,9 +11,7 @@ function preload() {
   nodes_table = loadTable('nodes.csv', 'csv', 'header');
  
 
-  //preload active nodes
-  //inactive nodes
-  //connections
+ //ok first node may not necessarily be author watch out for that
   
 }
 
@@ -23,6 +21,7 @@ function setup() {
   {
     timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
     timeToNode.set(nodes_table.getString(r, 1), nodes_table.getString(r,0))
+    names.push(nodes_table.getString(r, 0));
    // console.log(nodes_table.getString(r,1));
   }
   scale(0.25);
@@ -35,24 +34,24 @@ function setup() {
   network = new Network(0, 0);
   mainName = table.getString(0,1);
   console.log(mainName);
-  maxTime = 1;
+  minTime = 10000000;
   mainX = 3000;
   mainY = 2000;
-  img = loadImage("mavstweet.png");
+  //img = loadImage("mavstweet.png");
   //console.log(mainName);
 
   var newNode = new Neuron(mainX, mainY, mainName, true, defaultradius*4);
   map1.set(mainName, newNode);
-;  map1.set(lastName, new Neuron(width/2+50, height/2+50))
-  names.push(mainName);
+ map1.set(lastName, new Neuron(width/2+50, height/2+50));
+  //names.push(mainName);
   //create neurons
  
   for (let r = 0; r < table.getRowCount(); r++)
   {
     currName = table.getString(r, 0);
     time = int(timeMap.get(currName));
-    if (time > maxTime) {
-      maxTime = time;
+    if (time < minTime) {
+      minTime = time;
     }
     if (currName != lastName)
     {
@@ -60,23 +59,20 @@ function setup() {
       angle = random(0, TWO_PI);
       distance = random(400,2200);
   
-      if (time==-1)
-      {
-      map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, false, defaultradius, time, true));
-      }
+      
       if (time!=-1)
       {
-        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, true));
+        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, false));
       }
+     
 
 
     }
-    names.push(lastName);
+   // names.push(lastName);
     lastName = currName;
 
 
   }
-
       for (let r = 0; r < table.getRowCount(); r++)
   {
         currName = table.getString(r, 0);
@@ -101,10 +97,11 @@ function setup() {
       }
     }
   
-      
+    veryfirstguy = nodes_table.getString(nodes_table.getRowCount()-1, 0);
+    map1.set(veryfirstguy, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, veryfirstguy, true, defaultradius, timeMap.get(veryfirstguy), true));
 
 
-  names.push(currName);
+ // names.push(currName);
 
   //connect neurons using edges
   for (let r = 1; r < table.getRowCount(); r++)
@@ -147,17 +144,17 @@ function draw() {
   textSize(50);
   stroke(210);
   strokeWeight(4);
-  timescale = 40;
+  timescale = 120;
   for (var k=1; k<5; k++)
   {
   fill(255);
-  ellipse(mainX,mainY, 2*maxTime/(timescale*k));
+  ellipse(mainX,mainY, 2*minTime/(timescale*k));
 
   }
   fill(200);
   textSize(80);
-  text(round(exp(frameCount/timescale),1) + " seconds after tweet", 1000, 2000);
- 
+  text(formatTime(round(exp(frameCount/timescale),1)), 200, 300);
+
   network.update();
   //network.displayConnections();
   network.display();
@@ -180,11 +177,13 @@ function Connection(from, to,w) {
     this.sender = this.a.position.copy();
     this.sending = true;
   }
+
+  //make a note of when DOJA retweeted it and the big boom
   
   this.update = function() {
     if (this.sending) {
-      this.sender.x = lerp(this.sender.x, this.b.position.x, 0.2);
-      this.sender.y = lerp(this.sender.y, this.b.position.y, 0.2);
+      this.sender.x = lerp(this.sender.x, this.b.position.x, 0.1);
+      this.sender.y = lerp(this.sender.y, this.b.position.y, 0.1);
       var d = p5.Vector.dist(this.sender, this.b.position);
       if (d < 1) {
         this.b.feedforward(this.output);
@@ -209,6 +208,14 @@ function Connection(from, to,w) {
    
     
   }
+}
+
+function formatTime (seconds)
+{
+  hours = round(seconds/3600,0);
+  minutes = round((seconds%3600)/60, 0); 
+  finseconds = round((seconds%3600)%60, 1);
+  return (hours + "hours, " + minutes + " min, "  + finseconds + " seconds after tweet");
 }
 
 function Network(x, y) {
@@ -253,7 +260,7 @@ function Network(x, y) {
     
     for (var i = 0; i < this.neurons.length; i++)
     {
-      check = log(this.neurons[i].time)*40 - frameCount;
+      check = log(this.neurons[i].time)*120 - frameCount;
      // console.log(check);
       if ( check <= 0)
       {
@@ -360,7 +367,8 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
         fill(29, 161, 242, 200);
       if (this.isFirst)
       {
-        fill(10, 121, 200, 200);
+        fill(200,154,222, 200);
+        console.log("HI");
       }
       if (this.connections.length > 10)
       {
