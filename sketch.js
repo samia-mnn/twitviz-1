@@ -4,6 +4,8 @@ const timeMap = new Map();
 const timeToNode = new Map();
 var names = [];
 var startpoint = 0;
+let pause = false;
+let adjFrame = 0;
 
 
 function preload() {
@@ -139,6 +141,10 @@ function setup() {
 
 } 
 
+function mouseClicked() {
+  pause = !pause;
+}
+
 function draw() { 
   background(255);
   textSize(50);
@@ -153,9 +159,14 @@ function draw() {
   }
   fill(200);
   textSize(80);
-  text(formatTime(round(exp(frameCount/timescale),1)), 200, 300);
+  text(formatTime(round(exp(adjFrame/timescale),1)), 200, 300);
+ 
 
+  if (!pause)
+  {
+    adjFrame++;
   network.update();
+  }
   //network.displayConnections();
   network.display();
 
@@ -260,7 +271,7 @@ function Network(x, y) {
     
     for (var i = 0; i < this.neurons.length; i++)
     {
-      check = log(this.neurons[i].time)*120 - frameCount;
+      check = log(this.neurons[i].time)*120 - adjFrame;
      // console.log(check);
       if ( check <= 0)
       {
