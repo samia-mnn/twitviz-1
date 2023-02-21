@@ -2,6 +2,8 @@ var network;
 const map1 = new Map();
 const timeMap = new Map();
 const timeToNode = new Map();
+const nameMap = new Map();
+const followerMap = new Map();
 var names = [];
 var startpoint = 0;
 let pause = false;
@@ -11,7 +13,7 @@ let adjFrame = 0;
 function preload() {
   table = loadTable('links.csv', 'csv', 'header');
   nodes_table = loadTable('nodes.csv', 'csv', 'header');
- 
+  info_table = loadTable('nodes_t2.csv', 'csv', 'header');
 
  //ok first node may not necessarily be author watch out for that
   
@@ -24,6 +26,11 @@ function setup() {
     timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
     timeToNode.set(nodes_table.getString(r, 1), nodes_table.getString(r,0))
     names.push(nodes_table.getString(r, 0));
+  }
+  for (let r = 1; r < info_table.getRowCount(); r++)
+  {
+    followerMap.set(info_table.getString(r, 2), info_table.getString(r,5));
+    nameMap.set(info_table.getString(r, 2), info_table.getString(r,6))
   }
   scale(0.25);
   defaultradius = 32;
@@ -378,7 +385,10 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   }
   
   this.display = function() {
+    //console.log(followerMap.get(this.name));
    
+    let scaler = int(followerMap.get(this.name))/300+20;
+   // console.log(scaler);
     //console.log(this.isTouched);
     if (this.active)
     {
@@ -416,10 +426,9 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
         text(this.name, this.position.x, this.position.y);
   
       }
-      else
-      {
-      ellipse(this.position.x, this.position.y, this.r, this.r);
-      }
+     
+      ellipse(this.position.x, this.position.y, scaler, scaler);
+      
      
 
 
