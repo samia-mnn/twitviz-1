@@ -24,30 +24,24 @@ function setup() {
     timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
     timeToNode.set(nodes_table.getString(r, 1), nodes_table.getString(r,0))
     names.push(nodes_table.getString(r, 0));
-   // console.log(nodes_table.getString(r,1));
   }
   scale(0.25);
   defaultradius = 32;
   timescale = 30;
   createCanvas(6000,5000);
   lastName = table.getString(1,0);
-  //console.log(table.getColumn('Source'));
- // console.log(lastName);
+
   network = new Network(0, 0);
   mainName = table.getString(0,1);
-  console.log(mainName);
   minTime = 10000000;
   mainX = 3000;
   mainY = 2000;
-  //img = loadImage("mavstweet.png");
-  //console.log(mainName);
 
-  var newNode = new Neuron(mainX, mainY, mainName, true, defaultradius*4);
-  map1.set(mainName, newNode);
- map1.set(lastName, new Neuron(width/2+50, height/2+50));
-  //names.push(mainName);
-  //create neurons
- 
+  veryfirstguy = nodes_table.getString(nodes_table.getRowCount()-1, 0);
+
+ var newNode = new Neuron(mainX, mainY, veryfirstguy, true, defaultradius*4);
+ map1.set(veryfirstguy, newNode);
+
   for (let r = 0; r < table.getRowCount(); r++)
   {
     currName = table.getString(r, 0);
@@ -60,12 +54,19 @@ function setup() {
       
       angle = random(0, TWO_PI);
       distance = random(400,2200);
-  
-      
-      if (time!=-1)
+      if (map1.get(currName)!== 'undefined')
+{
+      map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, "other"));
+      parentNeuronName= (table.getString(r,1));
+
+      if (parentNeuronName == veryfirstguy)
       {
-        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, false));
+        console.log("first baby");
+        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, "second"));
       }
+
+    }
+     
      
 
 
@@ -75,7 +76,8 @@ function setup() {
 
 
   }
-      for (let r = 0; r < table.getRowCount(); r++)
+
+      for (let r = 0; r < table.getRowCount(); r++/*let r = table.getRowCount()-1; r >=0; r--*/)
   {
         currName = table.getString(r, 0);
         time = int(timeMap.get(currName));
@@ -89,7 +91,16 @@ function setup() {
         parentY = parentNeuron.position.y-mainY;
         magnitude = sqrt(parentX*parentX+parentY*parentY);
         colorCount = 1;
-        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time, false));
+        if (map1.get(currName)!== 'undefined')
+        {
+        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time, "other"));
+        if (parentNeuron.name == veryfirstguy)
+        {
+          console.log("me");
+          map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time, "second"));
+        }
+      }
+        
 
         }
         catch 
@@ -99,14 +110,13 @@ function setup() {
       }
     }
   
-    veryfirstguy = nodes_table.getString(nodes_table.getRowCount()-1, 0);
-    map1.set(veryfirstguy, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, veryfirstguy, true, defaultradius, timeMap.get(veryfirstguy), true));
+    map1.set(veryfirstguy, new Neuron(mainX, mainY, veryfirstguy, true, defaultradius, timeMap.get(veryfirstguy), "first"));
 
 
  // names.push(currName);
 
   //connect neurons using edges
-  for (let r = 1; r < table.getRowCount(); r++)
+  for (let r = table.getRowCount()-1; r >=0; r--)
   {
    network.connect(map1.get(table.getString(r,1)), map1.get(table.getString(r,0)), 2);
   }
@@ -353,6 +363,10 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
     {
     this.r = 64;
     this.isSending = true;
+    if (this.isFirst == "second")
+    {
+      console.log("first tier follower alert!");
+    }
     for (var i = 0; i < this.connections.length; i++) {
       if (this.active)
       {
@@ -376,10 +390,14 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
       if (this.isSending)
       {
         fill(29, 161, 242, 200);
-      if (this.isFirst)
+      if (this.isFirst =='first')
       {
         fill(200,154,222, 200);
-        console.log("HI");
+      }
+      if (this.isFirst == 'second')
+      {
+        fill(218,112,214, 200);
+
       }
       if (this.connections.length > 10)
       {
