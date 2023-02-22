@@ -8,18 +8,22 @@ var names = [];
 var startpoint = 0;
 let pause = false;
 let adjFrame = 0;
+let popsound;
 
 
 function preload() {
   table = loadTable('links.csv', 'csv', 'header');
   nodes_table = loadTable('nodes.csv', 'csv', 'header');
   info_table = loadTable('nodes_t2.csv', 'csv', 'header');
+  popsound = loadSound('bubl.wav');
+
 
  //ok first node may not necessarily be author watch out for that
   
 }
 
 function setup() { 
+
   //calculate distances
   for (let r = 1; r < nodes_table.getRowCount(); r++)
   {
@@ -368,6 +372,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   this.fire = function() {
     if (!this.isSending)
     {
+    //popsound.play();
     this.r = 64;
     this.isSending = true;
     if (this.isFirst == "second")
