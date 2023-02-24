@@ -4,11 +4,18 @@ const timeMap = new Map();
 const timeToNode = new Map();
 const nameMap = new Map();
 const followerMap = new Map();
+let slider;
 var names = [];
 var startpoint = 0;
 let pause = false;
 let adjFrame = 0;
 let popsound;
+let demotionVal = 1;
+let demotionDen = 10;
+//make restart
+//pause
+//click to end
+
 
 
 function preload() {
@@ -23,7 +30,63 @@ function preload() {
 }
 
 function setup() { 
+  slider = createSlider(0, 10, 0, 1);
+  slider.position(200, 400);
+  slider.style('width', '500px');
+  slider.style('height', '300px');
+  restartNetwork();
+  
 
+  
+} 
+
+function mouseClicked() {
+
+  pause = !pause;
+  
+
+}
+
+
+function keyPressed(){
+  if (key == ' '){ //this means space bar, since it is a space inside of the single quotes 
+    restartNetwork();
+    adjFrame = 0;
+  }
+}
+
+
+function draw() { 
+  background(255);
+ 
+ 
+  timescale = 120;
+  
+  fill(200);
+  textSize(80);
+  text(formatTime(round(exp(adjFrame/timescale),1)), 200, 300);
+  textSize(50);
+
+  text("Adjust Demotion", 200, 620);
+
+  text("Reset [SPACE]", 200, 700);
+
+
+  if (!pause)
+  {
+    adjFrame++;
+  network.update();
+  }
+  //network.displayConnections();
+  network.display();
+  demotionVal = slider.value();
+}
+
+function restartNetwork()
+{
+  //set everything to sum=0
+  //unfired state
+  //redo the setup function?
   //calculate distances
   for (let r = 1; r < nodes_table.getRowCount(); r++)
   {
@@ -72,7 +135,7 @@ function setup() {
 
       if (parentNeuronName == veryfirstguy)
       {
-        console.log("first baby");
+        //console.log("first baby");
         map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, "second"));
       }
 
@@ -159,40 +222,10 @@ function setup() {
   network.display();
   network.feedforward(1, 1);
   newNode.fire();
-
-} 
-
-function mouseClicked() {
-  pause = !pause;
-}
-
-function draw() { 
-  background(255);
-  textSize(50);
-  stroke(210);
-  strokeWeight(4);
-  timescale = 120;
-  for (var k=1; k<5; k++)
-  {
-  fill(255);
-  ellipse(mainX,mainY, 2*minTime/(timescale*k));
-
-  }
-  fill(200);
-  textSize(80);
-  text(formatTime(round(exp(adjFrame/timescale),1)), 200, 300);
- 
-
-  if (!pause)
-  {
-    adjFrame++;
-  network.update();
-  }
-  //network.displayConnections();
-  network.display();
+  //fill(200,200,200);
+  //rect(200, 600, 700, 700);
 
 }
-
 
 function Connection(from, to,w) {
   
@@ -208,6 +241,8 @@ function Connection(from, to,w) {
     this.output = val*this.weight;
     this.sender = this.a.position.copy();
     this.sending = true;
+    this.b.feedforward(val);
+  
   }
 
   //make a note of when DOJA retweeted it and the big boom
@@ -332,7 +367,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   
   this.position = createVector(x, y);
   this.connections = [];
-  this.sum = 0;
+  this.sum = (isFirst == 'first'? 1: 0);
   this.r = radius;
   this.isTouched = false;
   this.name = name;
@@ -346,13 +381,14 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   }
   
   this.feedforward = function(input) {
+  //  console.log(input);
     this.sum += input;
-    if (this.sum > 1) {
+  /*  if (this.sum > 0) {
       //this.fire();
       this.sum = 0;
       this.isTouched = true;
 
-    }
+    }*/
   }
 
   this.orient = function() {
@@ -370,17 +406,15 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   }
   
   this.fire = function() {
-    if (!this.isSending)
+    if (!this.isSending && this.sum > 0)
     {
     //popsound.play();
     this.r = 64;
     this.isSending = true;
-    if (this.isFirst == "second")
-    {
-      console.log("first tier follower alert!");
-    }
+  
     for (var i = 0; i < this.connections.length; i++) {
-      if (this.active)
+      let rand = random(demotionDen);
+      if (this.active && rand>demotionVal)
       {
        this.connections[i].feedforward(this.sum);
       }
