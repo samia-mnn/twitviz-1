@@ -20,9 +20,9 @@ let demotionDen = 10;
 
 
 function preload() {
-  table = loadTable('links.csv', 'csv', 'header');
-  nodes_table = loadTable('nodes.csv', 'csv', 'header');
-  info_table = loadTable('nodes_t2.csv', 'csv', 'header');
+  table = loadTable('links_tb.csv', 'csv', 'header');
+  nodes_table = loadTable('nodes_tb.csv', 'csv', 'header');
+  info_table = loadTable('users_tb.csv', 'csv', 'header');
   popsound = loadSound('bubl.wav');
 
 
@@ -101,7 +101,7 @@ function restartNetwork()
   minTime = 10000000;
   mainX = 3000;
   mainY = 2000;
-  veryfirstguy = nodes_table.getString(nodes_table.getRowCount()-1, 0);
+  veryfirstguy = nodes_table.getString(0, 0);
 
  var newNode = new Neuron(mainX, mainY, veryfirstguy, true, defaultradius*4);
  map1.set(veryfirstguy, newNode);
@@ -109,8 +109,8 @@ function restartNetwork()
  
   for (let r = 0; r < info_table.getRowCount(); r++)
   {
-    followerMap.set(info_table.getString(r, 2), info_table.getString(r,5));
-    nameMap.set(info_table.getString(r, 2), info_table.getString(r,6))
+    followerMap.set(info_table.getString(r, 0), info_table.getString(r,1));
+    nameMap.set(info_table.getString(r, 0), info_table.getString(r,2))
   }
   for (let r = 0; r < table.getRowCount(); r++)
   {
@@ -123,6 +123,7 @@ function restartNetwork()
   {
     id = nodes_table.getString(r,0);
     let time = int(parseFloat(nodes_table.getString(r,1)));
+   // console.log(time);
     let angle = random(0, TWO_PI);
     let distance = random(400,2200);
     if (parentMap.get(id) == veryfirstguy)
@@ -286,6 +287,7 @@ function Network(x, y) {
      // console.log(check);
       if ( check <= 0)
       {
+        //console.log("true");
         this.neurons[i].fire();
       }
     }
@@ -364,6 +366,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
     if (!this.isSending && this.sum > 0)
     {
     //popsound.play();
+    console.log("fire!!");
     this.r = 64;
     this.isSending = true;
   
@@ -397,6 +400,8 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
       if (this.isFirst =='first')
       {
         fill(200,154,222, 200);
+        scaler = 200;
+
       }
       if (this.isFirst == 'second')
       {
