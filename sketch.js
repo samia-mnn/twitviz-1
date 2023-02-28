@@ -20,9 +20,9 @@ let demotionDen = 10;
 
 
 function preload() {
-  table = loadTable('links_tb.csv', 'csv', 'header');
-  nodes_table = loadTable('nodes_tb.csv', 'csv', 'header');
-  info_table = loadTable('users_tb.csv', 'csv', 'header');
+  table = loadTable('links.csv', 'csv', 'header');
+  nodes_table = loadTable('nodes.csv', 'csv', 'header');
+  info_table = loadTable('nodes_t2.csv', 'csv', 'header');
   popsound = loadSound('bubl.wav');
 
 
@@ -64,13 +64,13 @@ function draw() {
   timescale = 120;
   
   fill(200);
-  textSize(80);
-  text(formatTime(round(exp(adjFrame/timescale),1)), 200, 300);
-  textSize(50);
+  textSize(windowHeight/40);
 
-  text("Adjust Demotion", 200, 620);
+  text(formatTime(round(exp(adjFrame/timescale),1)), windowWidth/30, windowHeight/10);
 
-  text("Reset [SPACE]", 200, 700);
+  text("Adjust Demotion", windowWidth/30, 2*windowHeight/10);
+
+  text("Reset [SPACE]", windowWidth/30, 3*windowHeight/10);
 
 
   if (!pause)
@@ -93,15 +93,15 @@ function restartNetwork()
   scale(0.25);
   defaultradius = 32;
   timescale = 30;
-  createCanvas(6000,5000);
+  createCanvas(windowWidth,windowHeight);
   lastName = table.getString(1,0);
 
   network = new Network(0, 0);
   mainName = table.getString(0,1);
   minTime = 10000000;
-  mainX = 3000;
-  mainY = 2000;
-  veryfirstguy = nodes_table.getString(0, 0);
+  mainX = windowWidth/2;
+  mainY = windowHeight/2;
+  veryfirstguy = nodes_table.getString(nodes_table.getRowCount()-1, 0);
 
  var newNode = new Neuron(mainX, mainY, veryfirstguy, true, defaultradius*4);
  map1.set(veryfirstguy, newNode);
@@ -109,8 +109,8 @@ function restartNetwork()
  
   for (let r = 0; r < info_table.getRowCount(); r++)
   {
-    followerMap.set(info_table.getString(r, 0), info_table.getString(r,1));
-    nameMap.set(info_table.getString(r, 0), info_table.getString(r,2))
+    followerMap.set(info_table.getString(r, 2), info_table.getString(r,5));
+    nameMap.set(info_table.getString(r, 2), info_table.getString(r,6))
   }
   for (let r = 0; r < table.getRowCount(); r++)
   {
@@ -125,7 +125,7 @@ function restartNetwork()
     let time = int(parseFloat(nodes_table.getString(r,1)));
    // console.log(time);
     let angle = random(0, TWO_PI);
-    let distance = random(400,2200);
+    let distance = random(40,windowHeight/2);
     if (parentMap.get(id) == veryfirstguy)
     {
      map1.set(id, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, id, true, defaultradius, time, "second"));
@@ -170,7 +170,7 @@ function restartNetwork()
   
   for (i=0; i<100;i++)
   {
-  network.orient();
+  //network.orient();
   }
   network.update();
  
@@ -226,7 +226,7 @@ function Connection(from, to,w) {
       hasSent = true;
       fill(0);
       strokeWeight(1);
-      ellipse(this.sender.x, this.sender.y, 16, 16);
+      ellipse(this.sender.x, this.sender.y, 2, 2);
     }
    
     
@@ -325,7 +325,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   this.position = createVector(x, y);
   this.connections = [];
   this.sum = (isFirst == 'first'? 1: 0);
-  this.r = radius;
+  this.r = 1;
   this.isTouched = false;
   this.name = name;
   this.active = active;
@@ -366,8 +366,8 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
     if (!this.isSending && this.sum > 0)
     {
     //popsound.play();
-    console.log("fire!!");
-    this.r = 64;
+    //console.log("fire!!");
+    //this.r = 64;
     this.isSending = true;
   
     for (var i = 0; i < this.connections.length; i++) {
@@ -384,11 +384,13 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   this.display = function() {
     //console.log(followerMap.get(this.name));
    
-    let scaler = int(followerMap.get(this.name))/300+20;
+    let scaler = int(followerMap.get(this.name))/1000+10;
+   
    // console.log(scaler);
     //console.log(this.isTouched);
     if (this.active)
     {
+
    /*   if (this.isTouched)
       {
         fill(29, 161, 242);
@@ -396,16 +398,16 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
       noStroke();
       if (this.isSending)
       {
-        fill(29, 161, 242, 200);
+        fill(29, 161, 242, 100);
       if (this.isFirst =='first')
       {
-        fill(200,154,222, 200);
+        fill(200,154,222, 150);
         scaler = 200;
 
       }
       if (this.isFirst == 'second')
       {
-        fill(218,112,214, 200);
+        fill(218,112,214, 150);
 
       }
       /*if (this.connections.length > 10)
@@ -426,22 +428,19 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
   
       }*/
      
-      ellipse(this.position.x, this.position.y, scaler, scaler);
-      
+      ellipse(this.position.x, this.position.y, scaler*this.r, scaler*this.r);
+      console.log(this.r);
      
 
 
+      this.r = lerp(this.r, 0.7,0.1);
 
 
       }
+
     }
-
-   
-
   
-    if (this.active)
-    {
-    this.r = lerp(this.r,32,0.1);
-    }
+  
+   
   }
 }
