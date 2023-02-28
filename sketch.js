@@ -4,6 +4,7 @@ const timeMap = new Map();
 const timeToNode = new Map();
 const nameMap = new Map();
 const followerMap = new Map();
+const parentMap = new Map();
 let slider;
 var names = [];
 var startpoint = 0;
@@ -88,17 +89,7 @@ function restartNetwork()
   //unfired state
   //redo the setup function?
   //calculate distances
-  for (let r = 1; r < nodes_table.getRowCount(); r++)
-  {
-    timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
-    timeToNode.set(nodes_table.getString(r, 1), nodes_table.getString(r,0))
-    names.push(nodes_table.getString(r, 0));
-  }
-  for (let r = 1; r < info_table.getRowCount(); r++)
-  {
-    followerMap.set(info_table.getString(r, 2), info_table.getString(r,5));
-    nameMap.set(info_table.getString(r, 2), info_table.getString(r,6))
-  }
+
   scale(0.25);
   defaultradius = 32;
   timescale = 30;
@@ -110,84 +101,49 @@ function restartNetwork()
   minTime = 10000000;
   mainX = 3000;
   mainY = 2000;
-
   veryfirstguy = nodes_table.getString(nodes_table.getRowCount()-1, 0);
 
  var newNode = new Neuron(mainX, mainY, veryfirstguy, true, defaultradius*4);
  map1.set(veryfirstguy, newNode);
 
+ 
+  for (let r = 0; r < info_table.getRowCount(); r++)
+  {
+    followerMap.set(info_table.getString(r, 2), info_table.getString(r,5));
+    nameMap.set(info_table.getString(r, 2), info_table.getString(r,6))
+  }
   for (let r = 0; r < table.getRowCount(); r++)
   {
-    currName = table.getString(r, 0);
-    time = int(timeMap.get(currName));
-    if (time < minTime) {
-      minTime = time;
-    }
-    if (currName != lastName)
-    {
-      
-      angle = random(0, TWO_PI);
-      distance = random(400,2200);
-      if (map1.get(currName)!== 'undefined')
-{
-      map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, "other"));
-      parentNeuronName= (table.getString(r,1));
-
-      if (parentNeuronName == veryfirstguy)
-      {
-        //console.log("first baby");
-        map1.set(currName, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, currName, true, defaultradius, time, "second"));
-      }
-
-    }
-     
-     
-
-
-    }
-   // names.push(lastName);
-    lastName = currName;
-
-
+     let id = table.getString(r,0);
+     let parent = table.getString(r,1);
+     parentMap.set(id, parent);
   }
 
-      for (let r = 0; r < table.getRowCount(); r++/*let r = table.getRowCount()-1; r >=0; r--*/)
+  for (let r = 0; r < nodes_table.getRowCount(); r++)
   {
-        currName = table.getString(r, 0);
-        time = int(timeMap.get(currName));
-        if (table.getString(r, 1) != mainName)
-      {
-        try
-        {
-        parentNeuron= map1.get(table.getString(r,1));
-       // console.log(parentNeuron);
-        parentX = parentNeuron.position.x-mainX;
-        parentY = parentNeuron.position.y-mainY;
-        magnitude = sqrt(parentX*parentX+parentY*parentY);
-        colorCount = 1;
-        if (map1.get(currName)!== 'undefined')
-        {
-        map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time, "other"));
-        if (parentNeuron.name == veryfirstguy)
-        {
-          console.log("me");
-          map1.set(currName, new Neuron(mainX+(parentX)*1.05, mainY+parentY*1.05, currName, true, defaultradius, time, "second"));
-        }
-      }
-        
-
-        }
-        catch 
-        {
-          console.log('fail');
-        }
-      }
+    id = nodes_table.getString(r,0);
+    let time = int(parseFloat(nodes_table.getString(r,1)));
+    let angle = random(0, TWO_PI);
+    let distance = random(400,2200);
+    if (parentMap.get(id) == veryfirstguy)
+    {
+     map1.set(id, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, id, true, defaultradius, time, "second"));
     }
-  
-    map1.set(veryfirstguy, new Neuron(mainX, mainY, veryfirstguy, true, defaultradius, timeMap.get(veryfirstguy), "first"));
+    else if (parentMap.get(id)!=veryfirstguy)
+    {
+      map1.set(id, new Neuron(mainX+cos(angle)*distance, mainY+sin(angle)*distance, id, true, defaultradius, time, "other"));
+    }
+    timeMap.set(nodes_table.getString(r, 0), nodes_table.getString(r,1));
+    timeToNode.set(nodes_table.getString(r, 1), nodes_table.getString(r,0));
+    names.push(id);
+  }
+
+  map1.set(veryfirstguy, new Neuron(mainX, mainY, veryfirstguy, true, defaultradius, timeMap.get(veryfirstguy), "first"));
+
+ 
 
 
- // names.push(currName);
+
 
   //connect neurons using edges
   for (let r = table.getRowCount()-1; r >=0; r--)
@@ -196,7 +152,6 @@ function restartNetwork()
   }
   for (let i = 0; i < names.length; i++)
   {
-   // console.log(name);
     network.addNeuron(map1.get(names[i]));
   }
 
