@@ -408,7 +408,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
         fill(218,112,214, 200);
 
       }
-      if (this.connections.length > 10)
+      /*if (this.connections.length > 10)
       {
       ellipse(this.position.x, this.position.y, this.r*3, this.r*3);
       }
@@ -424,7 +424,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
         textSize(10);
         text(this.name, this.position.x, this.position.y);
   
-      }
+      }*/
      
       ellipse(this.position.x, this.position.y, scaler, scaler);
       
