@@ -16,7 +16,20 @@ let demotionDen = 10;
 //make restart
 //pause
 //click to end
+//histogram
+let histogram_x = 0;
+let histogram_y = 0;
+let histogram_width = 0;
+let histogram_height = 0;
+const max_bar_height = 3000;
 
+
+let end_time = 0;
+let bar_times = 0;
+const num_bars = 150;
+let hist_times = new Array(num_bars).fill(0);
+let hist_heights = new Array(num_bars).fill(0);
+let cur_bar = 0
 
 
 function preload() {
@@ -25,8 +38,7 @@ function preload() {
   info_table = loadTable('nodes_t2.csv', 'csv', 'header');
   popsound = loadSound('bubl.wav');
 
-
- //ok first node may not necessarily be author watch out for that
+  //ok first node may not necessarily be author watch out for that
   
 }
 
@@ -37,8 +49,22 @@ function setup() {
   slider.style('height', '300px');
   restartNetwork();
   
+  //histogram
+  end_time = 0;
+  for (let r = 0; r < nodes_table.getRowCount(); r++)
+  {
+    let n_time = int(parseFloat(nodes_table.getString(r,1)))
+    if (end_time < n_time){
+      end_time  = n_time
+    }
+  }
 
-  
+  bar_times = int( end_time/num_bars )
+  hist_times = Array.from({ length: num_bars}, (_, i) => bar_times + (i * bar_times))
+  histogram_x = windowWidth/30;
+  histogram_y = 8*windowHeight/10;
+  histogram_width = 8*windowWidth/30;
+  histogram_height = 1*windowHeight/10;
 } 
 
 function mouseClicked() {
@@ -60,7 +86,6 @@ function keyPressed(){
 function draw() { 
   background(255);
  
- 
   timescale = 120;
   
   fill(200);
@@ -81,6 +106,20 @@ function draw() {
   //network.displayConnections();
   network.display();
   demotionVal = slider.value();
+
+
+
+  //histogram
+  for (let i=0; i < cur_bar; i++){
+    xpos = int(map(i,0,num_bars,histogram_x,histogram_x+histogram_width)) 
+    y1 = histogram_y+histogram_height
+    y2 = int(map(hist_heights[i],0,max_bar_height,histogram_y+histogram_height,histogram_y))
+    line(xpos,y1,xpos,y2)
+  }
+  console.log(hist_heights[cur_bar])
+  if ( (hist_times[cur_bar] - round(exp(adjFrame/timescale),1))  <= 0 ){
+    cur_bar = cur_bar + 1
+  }
 }
 
 function restartNetwork()
@@ -181,6 +220,8 @@ function restartNetwork()
   //fill(200,200,200);
   //rect(200, 600, 700, 700);
 
+  cur_bar = 0
+  hist_heights = new Array(num_bars).fill(0)
 }
 
 function Connection(from, to,w) {
@@ -369,7 +410,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
     //console.log("fire!!");
     //this.r = 64;
     this.isSending = true;
-  
+    hist_heights[cur_bar]  = hist_heights[cur_bar] + 1
     for (var i = 0; i < this.connections.length; i++) {
       let rand = random(demotionDen);
       if (this.active && rand>demotionVal)
@@ -429,7 +470,7 @@ function Neuron(x, y, name, active, radius, time, isFirst) {
       }*/
      
       ellipse(this.position.x, this.position.y, scaler*this.r, scaler*this.r);
-      console.log(this.r);
+      //console.log(this.r);
      
 
 
