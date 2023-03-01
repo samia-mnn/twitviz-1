@@ -21,7 +21,7 @@ let histogram_x = 0;
 let histogram_y = 0;
 let histogram_width = 0;
 let histogram_height = 0;
-const max_bar_height = 3000;
+const max_bar_height = 100;
 
 
 let end_time = 0;
@@ -114,6 +114,7 @@ function draw() {
     xpos = int(map(i,0,num_bars,histogram_x,histogram_x+histogram_width)) 
     y1 = histogram_y+histogram_height
     y2 = int(map(hist_heights[i],0,max_bar_height,histogram_y+histogram_height,histogram_y))
+    //strokeWeight(10);
     line(xpos,y1,xpos,y2)
   }
   console.log(hist_heights[cur_bar])
