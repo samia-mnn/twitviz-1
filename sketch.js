@@ -32,7 +32,7 @@ function preload() {
 
 function setup() { 
   slider = createSlider(0, 10, 0, 1);
-  slider.position(200, 400);
+  slider.position(windowWidth/30, windowHeight/20);
   slider.style('width', '500px');
   slider.style('height', '300px');
   restartNetwork();
